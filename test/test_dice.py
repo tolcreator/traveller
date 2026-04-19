@@ -1,3 +1,10 @@
+""" For testing src/dice/dice.py
+
+We test by rolling 2 of a selection of dice
+We overwrite dice.randint so that we get predictable results
+We then compare the results with the expected values
+"""
+
 import src.dice.dice as dice
 
 test_dice = [4, 6, 8, 10, 12, 20]
