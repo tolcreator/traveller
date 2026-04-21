@@ -1,4 +1,22 @@
-""" Traveller 'ehex' values """
+""" Traveller 'ehex' values 
+    A case could be made for a very minimal approach here. I could
+    just have:
+        The hex table
+        a hex to int method
+        a int to hex method
+        an is valid method
+    and leave it at that. What's neat is that comparisons between
+    the string values on the hex table are all valid: that is 
+        '0' < '2', '4' < 'A', and 'B' < 'F' are all true.
+
+    Alternatively I could have a class Ehex which overrides various
+    dunder methods so that it acts... nicely. You can compare ehexes,
+    compare ehexes to strings (that appear on the hex table), and
+    compare ehexes to numbers (that are in bounds). It could check
+    that values are in bounds on assignment. This is all very "extra"
+    but the value is probably mainly in the exercise here.
+
+"""
 
 # So called "hex" values can actually be larger than 'F'
 hex_table = [
@@ -27,18 +45,6 @@ def int_to_hex(value):
             raise ValueError
     else:
         raise TypeError
-
-def greater_than(a, b):
-    return hex_to_int(a) > hex_to_int(b)
-
-def greater_than_or_equal_to(a, b):
-    return hex_to_int(a) >= hex_to_int(b)
-
-def less_than(a, b):
-    return hex_to_int(a) < hex_to_int(b)
-
-def less_than_or_equal_to(a, b):
-    return hex_to_int(a) <= hex_to_int(b)
 
 def is_valid(a):
     if a in hex_table:
