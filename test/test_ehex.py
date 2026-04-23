@@ -11,6 +11,7 @@ from src.utils.ehex import Ehex
       ( 9,  nullcontext()),
       ('F', nullcontext()),
       ( 96, pytest.raises(ValueError)),
+      ( -5, pytest.raises(ValueError)),
       ('g', pytest.raises(ValueError)),
       (0.2, pytest.raises(TypeError))
     ])
@@ -42,7 +43,8 @@ def test_comaparing_ehexes(first, second, expected):
       ('C',  12, nullcontext(True)),
       ('B', 'C', nullcontext(False)),
       ('B', 112, nullcontext(False)),
-      ('B', 'b', nullcontext(False))
+      ('B', 'b', nullcontext(False)),
+      ('B', -12, nullcontext(False))
     ])
 def test_comparing_ehex_to_raw(first, second, expected):
     with expected as e:
@@ -109,7 +111,8 @@ def test_hex_to_int(test_value, expected):
       ( 10, nullcontext('A')), 
       ( 16, nullcontext('G')),
       ('1', pytest.raises(TypeError)),
-      ( 51, pytest.raises(ValueError))
+      ( 51, pytest.raises(ValueError)),
+      ( -3, pytest.raises(ValueError))
     ])
 def test_int_to_hex(test_value, expected):
     with expected as e:
@@ -123,6 +126,7 @@ def test_int_to_hex(test_value, expected):
       ('B', True),
       ('X', True), 
       ( 0, False),
+      (-3, False),
       ( 0.1, False), 
       ("Something invalid", False)
     ])

@@ -76,7 +76,6 @@ class Ehex:
         return not self.__eq__(other)
 
 
-
 def hex_to_int(hex_value):
     """ Converts a string 'hex' value into an int. """
     if isinstance(hex_value, str):
@@ -90,7 +89,7 @@ def hex_to_int(hex_value):
 def int_to_hex(value):
     """ Converts an int value into a string 'hex' value """
     if isinstance(value, int):
-        if value < len(hex_table):
+        if value >= 0 and value < len(hex_table):
             return hex_table[value]
         else:
             raise ValueError
