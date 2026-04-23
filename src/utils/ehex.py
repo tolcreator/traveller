@@ -62,7 +62,7 @@ class Ehex:
             no need to raise an exception. """
         if isinstance(other, int):
             if other >= 0 and other < len(hex_table):
-                return hex_table.index(self.value) == other
+                return self.value == hex_table[other]
             else:
                 return False
         elif isinstance(other, str):
