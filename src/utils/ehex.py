@@ -19,12 +19,63 @@
 """
 
 # So called "hex" values can actually be larger than 'F'
-hex_table = [
+hex_table = (
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
     'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
     'U', 'V', 'W', 'X', 'Y', 'Z'
-    ]
+    )
+
+class Ehex:
+    def __init__(self, value = '0'):
+        """ No need to do any checks here. The assignment will call
+            our custom __setattr__ method below, which will perform
+            any necessary checks. """
+        self.value = value
+
+    def __setattr__(self, attribute, value):
+        """ value here can be an int from 0 to 35
+            or a character which appears in hex_table """
+        if isinstance(value, int):
+            if value >= 0 and value < len(hex_table):
+                object.__setattr__(self, attribute, hex_table[value])
+            else:
+                raise ValueError
+        elif isinstance(value, str):
+            if value in hex_table:
+                object.__setattr__(self, attribute, value)
+            else:
+                raise ValueError
+        else:
+            raise TypeError
+
+    def __int__(self):
+        return hex_table.index(self.value)
+
+    def __str__(self):
+        return self.value
+
+    def __eq__(self, other):
+        """ We can compare an Ehex with an int, a str, or another
+            ehex. A nonsensical comparison: with another object,
+            or with something out of bounds, can just be False:
+            no need to raise an exception. """
+        if isinstance(other, int):
+            if other >= 0 and other < len(hex_table):
+                return hex_table.index(self.value) == other
+            else:
+                return False
+        elif isinstance(other, str):
+            return self.value == other
+        elif isinstance(other, Ehex):
+            return self.value == other.value
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
 
 def hex_to_int(hex_value):
     """ Converts a string 'hex' value into an int. """
