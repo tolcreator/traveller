@@ -5,22 +5,18 @@ We overwrite dice.randint so that we get predictable results
 We then compare the results with the expected values
 """
 
+import pytest
 import src.utils.dice as dice
 
-test_dice = [4, 6, 8, 10, 12, 20]
-test_numbers = [
-        2, 3, # for d4s
-        1, 5, # for d6s
-        5, 8, # for d8s
-        3, 9, # for d10s
-        2, 11, # for d12s
-        14, 19 # for d20s
-        ]
-test_answers = [5, 6, 13, 12, 13, 33]
-
-def test_roll():
-    dice.randint = lambda x, y : test_numbers.pop(0)
-    for test_die in test_dice:
-        result = dice.roll(2, test_die)
-        assert result == test_answers.pop(0)
-
+@pytest.mark.parametrize("sides, rolls, expected",
+    [
+        (4,  [2, 3], 5),
+        (6,  [1, 5], 6),
+        (8,  [5, 8], 13),
+        (10, [3, 9], 12),
+        (12, [2, 11], 13),
+        (20, [14, 19], 33)
+    ])
+def test_roll(sides: int, rolls: list[int], expected: int):
+    dice.randint = lambda x, y : rolls.pop(0)
+    assert dice.roll(2, sides) == expected

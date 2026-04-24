@@ -9,7 +9,7 @@ When used as a standalone script, it expects 0, 1, or 2 arguments.
 
 from random import randint
 
-def roll(num_dice=1, sides=6):
+def roll(num_dice: int = 1, sides: int = 6) -> int:
     """ Simple function for rolling N dice of M sides """
     total = 0
     for die in range(num_dice):
