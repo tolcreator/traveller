@@ -75,6 +75,63 @@ class Ehex:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        """ Less Than """
+        if isinstance(other, int):
+            return self.value < int_to_hex(other)
+        elif isinstance(other, str):
+            if other in hex_table:
+                return self.value < other
+            else:
+                raise ValueError
+        elif isinstance(other, Ehex):
+            return self.value < other.value
+        else:
+            raise TypeError
+
+    def __le__(self, other):
+        """ Less Than or Equal To """
+        if isinstance(other, int):
+            return self.value <= int_to_hex(other)
+        elif isinstance(other, str):
+            if other in hex_table:
+                return self.value <= other
+            else:
+                raise ValueError
+        elif isinstance(other, Ehex):
+            return self.value <= other.value
+        else:
+            raise TypeError
+
+    def __gt__(self, other):
+        """ Greater Than """
+        if isinstance(other, int):
+            return self.value > int_to_hex(other)
+        elif isinstance(other, str):
+            if other in hex_table:
+                return self.value > other
+            else:
+                raise ValueError
+        elif isinstance(other, Ehex):
+            return self.value > other.value
+        else:
+            raise TypeError
+
+    def __ge__(self, other):
+        """ Greater Than or Equal To"""
+        if isinstance(other, int):
+            return self.value >= int_to_hex(other)
+        elif isinstance(other, str):
+            if other in hex_table:
+                return self.value >= other
+            else:
+                raise ValueError
+        elif isinstance(other, Ehex):
+            return self.value >= other.value
+        else:
+            raise TypeError
+
+
 
 def hex_to_int(hex_value):
     """ Converts a string 'hex' value into an int. """
