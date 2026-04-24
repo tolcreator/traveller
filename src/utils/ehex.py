@@ -27,13 +27,13 @@ hex_table = (
     )
 
 class Ehex:
-    def __init__(self, value = '0'):
+    def __init__(self, value: str = '0'):
         """ No need to do any checks here. The assignment will call
             our custom __setattr__ method below, which will perform
             any necessary checks. """
         self.value = value
 
-    def __setattr__(self, attribute, value):
+    def __setattr__(self, attribute: str, value: int | str):
         """ value here can be an int from 0 to 35
             or a character which appears in hex_table """
         if isinstance(value, int):
@@ -49,13 +49,13 @@ class Ehex:
         else:
             raise TypeError
 
-    def __int__(self):
+    def __int__(self) -> int:
         return hex_table.index(self.value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
-    def __eq__(self, other):
+    def __eq__(self, other: int | str | Ehex) -> bool:
         """ We can compare an Ehex with an int, a str, or another
             ehex. A nonsensical comparison: with another object,
             or with something out of bounds, can just be False:
@@ -72,10 +72,10 @@ class Ehex:
         else:
             return False
 
-    def __ne__(self, other):
+    def __ne__(self, other: int | str | Ehex) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: int | str | Ehex) -> bool:
         """ Less Than """
         if isinstance(other, int):
             return self.value < int_to_hex(other)
@@ -89,7 +89,7 @@ class Ehex:
         else:
             raise TypeError
 
-    def __le__(self, other):
+    def __le__(self, other: int | str | Ehex) -> bool:
         """ Less Than or Equal To """
         if isinstance(other, int):
             return self.value <= int_to_hex(other)
@@ -103,7 +103,7 @@ class Ehex:
         else:
             raise TypeError
 
-    def __gt__(self, other):
+    def __gt__(self, other: int | str | Ehex) -> bool:
         """ Greater Than """
         if isinstance(other, int):
             return self.value > int_to_hex(other)
@@ -117,7 +117,7 @@ class Ehex:
         else:
             raise TypeError
 
-    def __ge__(self, other):
+    def __ge__(self, other: int | str | Ehex) -> bool:
         """ Greater Than or Equal To"""
         if isinstance(other, int):
             return self.value >= int_to_hex(other)
@@ -133,7 +133,7 @@ class Ehex:
 
 
 
-def hex_to_int(hex_value):
+def hex_to_int(hex_value: str) -> int:
     """ Converts a string 'hex' value into an int. """
     if isinstance(hex_value, str):
         if hex_value in hex_table:
@@ -143,7 +143,7 @@ def hex_to_int(hex_value):
     else:
         raise TypeError
 
-def int_to_hex(value):
+def int_to_hex(value: int) -> str:
     """ Converts an int value into a string 'hex' value """
     if isinstance(value, int):
         if value >= 0 and value < len(hex_table):
@@ -153,7 +153,7 @@ def int_to_hex(value):
     else:
         raise TypeError
 
-def is_valid(a):
+def is_valid(a: str) -> bool:
     if a in hex_table:
         return True
     return False
