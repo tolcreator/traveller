@@ -45,7 +45,7 @@ class Ehex:
             if value in hex_table:
                 object.__setattr__(self, attribute, value)
             else:
-                raise ValueError
+                raise ValueError("Ehex must be between 0('0') and 35('Z')")
         else:
             raise TypeError
 
@@ -83,7 +83,7 @@ class Ehex:
             if other in hex_table:
                 return self.value < other
             else:
-                raise ValueError
+                raise ValueError("Ehex must be between 0('0') and 35('Z')")
         elif isinstance(other, Ehex):
             return self.value < other.value
         else:
@@ -97,7 +97,7 @@ class Ehex:
             if other in hex_table:
                 return self.value <= other
             else:
-                raise ValueError
+                raise ValueError("Ehex must be between 0('0') and 35('Z')")
         elif isinstance(other, Ehex):
             return self.value <= other.value
         else:
@@ -111,7 +111,7 @@ class Ehex:
             if other in hex_table:
                 return self.value > other
             else:
-                raise ValueError
+                raise ValueError("Ehex must be between 0('0') and 35('Z')")
         elif isinstance(other, Ehex):
             return self.value > other.value
         else:
@@ -125,7 +125,7 @@ class Ehex:
             if other in hex_table:
                 return self.value >= other
             else:
-                raise ValueError
+                raise ValueError("Ehex must be between 0('0') and 35('Z')")
         elif isinstance(other, Ehex):
             return self.value >= other.value
         else:
@@ -139,7 +139,7 @@ def hex_to_int(hex_value: str) -> int:
         if hex_value in hex_table:
             return hex_table.index(hex_value)
         else:
-            raise ValueError
+            raise ValueError("Ehex must be between 0('0') and 35('Z')")
     else:
         raise TypeError
 
@@ -149,7 +149,7 @@ def int_to_hex(value: int) -> str:
         if value >= 0 and value < len(hex_table):
             return hex_table[value]
         else:
-            raise ValueError
+            raise ValueError("Ehex must be between 0('0') and 35('Z')")
     else:
         raise TypeError
 
