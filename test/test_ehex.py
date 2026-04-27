@@ -22,72 +22,120 @@ def test_ehex_construction(test_value, expected):
 
 
 @pytest.mark.parametrize("first, second, expected",
-    [ ('2', '2', nullcontext(True)), 
-      ('A',  10, nullcontext(True)),
-      ('C',  12, nullcontext(True)),
-      ('B', 'C', nullcontext(False)),
-      ('B', 112, pytest.raises(ValueError)),
-      ('B', 'b', pytest.raises(ValueError))
+    [ (Ehex('2'), Ehex('2'), True), 
+      (Ehex('A'), Ehex(10), True),
+      (Ehex('C'), Ehex('C'), True),
+      (Ehex('B'), Ehex('C'), False),
+      (Ehex('2'), '2', True), 
+      (Ehex('A'),  10, True),
+      (Ehex('C'),  12, True),
+      (Ehex('B'), 'C', False),
+      (Ehex('B'), 112, False),
+      (Ehex('B'), 'b', False),
+      (Ehex('B'), -12, False)
     ])
-def test_comaparing_ehexes(first, second, expected):
-    with expected as e:
-        a = Ehex(first)
-        b = Ehex(second)
-        assert (a == b) == e
+def test_comaparison(first, second, expected):
+    assert (first == second) == expected
+
+
+
+@pytest.mark.parametrize("test_value, expected",
+    [ ( Ehex(0), '0'),
+      ( Ehex(9), '9'),
+      ( Ehex(15),'F'),
+    ])
+def test_ehex_str(test_value, expected):
+    assert str(test_value) == expected
+
+
+
+@pytest.mark.parametrize("test_value, expected",
+    [ ( Ehex('0'), 0),
+      ( Ehex('9'), 9),
+      ( Ehex('F'), 15),
+    ])
+def test_ehex_int(test_value, expected):
+    assert int(test_value) == expected
 
 
 
 @pytest.mark.parametrize("first, second, expected",
-    [ ('2', '2', nullcontext(True)), 
-      ('A',  10, nullcontext(True)),
-      ('C',  12, nullcontext(True)),
-      ('B', 'C', nullcontext(False)),
-      ('B', 112, nullcontext(False)),
-      ('B', 'b', nullcontext(False)),
-      ('B', -12, nullcontext(False))
+    [ (Ehex('0'), Ehex('A'), nullcontext(True)), 
+      (Ehex('4'), Ehex('4'), nullcontext(False)), 
+      (Ehex('C'), Ehex('9'), nullcontext(False)),
+      (Ehex('0'), 'A', nullcontext(True)), 
+      (Ehex('4'), '4', nullcontext(False)), 
+      (Ehex('C'), '9', nullcontext(False)),
+      (Ehex('0'), 'a', pytest.raises(ValueError)), 
+      (Ehex('4'), 0.1, pytest.raises(TypeError)), 
+      (Ehex('0'), 10,  nullcontext(True)), 
+      (Ehex('4'), 4,   nullcontext(False)), 
+      (Ehex('C'), 9,   nullcontext(False)),
+      (Ehex('C'), 99,  pytest.raises(ValueError))
     ])
-def test_comparing_ehex_to_raw(first, second, expected):
+def test_ehex_lt(first, second, expected):
     with expected as e:
-        a = Ehex(first)
-        assert (a == second) == e
+        assert (first < second) == e
 
 
 
-@pytest.mark.parametrize("test_value, expected",
-    [ ( 2 , True),
-      ('3', True),
-      (14 , True),
-      ( 0 , True),
-      ('A', True),
-      ( 4 , False),
-      ('F', False)
-     ])
-def test_ehex_in_raw_list(test_value, expected):
-    raw_list = ['2', '3', 'E', 0, 10, 57]
-    a = Ehex(test_value)
-    assert (a in raw_list) == expected
-
-
-
-@pytest.mark.parametrize("test_value, expected",
-    [ ( 0, '0'),
-      ( 9, '9'),
-      ( 15,'F'),
+@pytest.mark.parametrize("first, second, expected",
+    [ (Ehex('0'), Ehex('A'), nullcontext(True)), 
+      (Ehex('4'), Ehex('4'), nullcontext(True)), 
+      (Ehex('C'), Ehex('9'), nullcontext(False)),
+      (Ehex('0'), 'A', nullcontext(True)), 
+      (Ehex('4'), '4', nullcontext(True)), 
+      (Ehex('C'), '9', nullcontext(False)),
+      (Ehex('0'), 'a', pytest.raises(ValueError)), 
+      (Ehex('4'), 0.1, pytest.raises(TypeError)), 
+      (Ehex('0'), 10,  nullcontext(True)), 
+      (Ehex('4'), 4,   nullcontext(True)), 
+      (Ehex('C'), 9,   nullcontext(False)),
+      (Ehex('C'), 99,  pytest.raises(ValueError))
     ])
-def test_ehex_str(test_value, expected):
-    my_hex = Ehex(test_value)
-    assert str(my_hex) == expected
+def test_ehex_le(first, second, expected):
+    with expected as e:
+        assert (first <= second) == e
 
 
 
-@pytest.mark.parametrize("test_value, expected",
-    [ ( '0', 0),
-      ( '9', 9),
-      ( 'F', 15),
+@pytest.mark.parametrize("first, second, expected",
+    [ (Ehex('0'), Ehex('A'), nullcontext(False)), 
+      (Ehex('4'), Ehex('4'), nullcontext(False)), 
+      (Ehex('C'), Ehex('9'), nullcontext(True)),
+      (Ehex('0'), 'A', nullcontext(False)), 
+      (Ehex('4'), '4', nullcontext(False)), 
+      (Ehex('C'), '9', nullcontext(True)),
+      (Ehex('0'), 'a', pytest.raises(ValueError)), 
+      (Ehex('4'), 0.1, pytest.raises(TypeError)), 
+      (Ehex('0'), 10,  nullcontext(False)), 
+      (Ehex('4'), 4,   nullcontext(False)), 
+      (Ehex('C'), 9,   nullcontext(True)),
+      (Ehex('C'), 99,  pytest.raises(ValueError))
     ])
-def test_ehex_int(test_value, expected):
-    my_hex = Ehex(test_value)
-    assert int(my_hex) == expected
+def test_ehex_gt(first, second, expected):
+    with expected as e:
+        assert (first > second) == e
+
+
+
+@pytest.mark.parametrize("first, second, expected",
+    [ (Ehex('0'), Ehex('A'), nullcontext(False)), 
+      (Ehex('4'), Ehex('4'), nullcontext(True)), 
+      (Ehex('C'), Ehex('9'), nullcontext(True)),
+      (Ehex('0'), 'A', nullcontext(False)), 
+      (Ehex('4'), '4', nullcontext(True)), 
+      (Ehex('C'), '9', nullcontext(True)),
+      (Ehex('0'), 'a', pytest.raises(ValueError)), 
+      (Ehex('4'), 0.1, pytest.raises(TypeError)), 
+      (Ehex('0'), 10,  nullcontext(False)), 
+      (Ehex('4'), 4,   nullcontext(True)), 
+      (Ehex('C'), 9,   nullcontext(True)),
+      (Ehex('C'), 99,  pytest.raises(ValueError))
+    ])
+def test_ehex_ge(first, second, expected):
+    with expected as e:
+        assert (first >= second) == e
 
 
 
