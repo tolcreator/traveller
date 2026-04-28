@@ -3,7 +3,7 @@
 import src.utils.ehex as ehex
 from src.utils.ehex import Ehex
 
-def check_is_uwp_string_valid(uwp_string):
+def check_is_uwp_string_valid(uwp_string: str) -> bool:
     """ Checks if this is a well formed uwp_string with sane values
 
         A valid UWP is of the form S123456-7 where
@@ -11,6 +11,9 @@ def check_is_uwp_string_valid(uwp_string):
         1 through 7 are 'hex' values and must be on the hex table
         - separates tech level from the rest of the string and must
         be present. """
+
+    if not isinstance(uwp_string, str):
+        return False
 
     if len(uwp_string) != 9:
         print(f"uwp_string '{uwp_string}' incorrect length:" \
@@ -36,26 +39,102 @@ def check_is_uwp_string_valid(uwp_string):
 
     return True
 
-class Uwp:
+def check_is_uwp_tuple_valid(uwp_tuple: tuple) -> bool:
+    """ Checks if this is a tuple of ehexes of the correct length
+        and with sane values """
 
-    """ TODO I'd also like to be able to create a Uwp from a list
-        (maybe a tuple) of Ehexes. """
-    def __init__(self, uwp_string):
+    if not isinstance(uwp_tuple, tuple):
+        return False
+
+    if len(uwp_tuple) != 8:
+        return False
+
+    for candidate in uwp_tuple:
+        if not isinstance(candidate, Ehex):
+            return False
+
+    if uwp_tuple[0] not in ['A', 'B', 'C', 'D', 'E', 'X']:
+        """ First element must be starport and must have one of
+            these values """
+        return False
+
+    return True
+
+def check_is_uwp_dict_valid(uwp_dict: dict) -> bool:
+    """ Checks if this is a dict with the correct fields """
+    if not isinstance(uwp_dict, dict):
+        return False
+
+    expected_fields = [
+            "Starport",
+            "Size",
+            "Atmosphere",
+            "Hydrosphere",
+            "Population",
+            "Government",
+            "Law Level",
+            "Tech Level"]
+
+    for expected_field in expected_fields:
+        if expected_field not in uwp_dict:
+            return False
+        if not isinstance(uwp_dict[expected_field], Ehex):
+            return False
+
+    if uwp_dict["Starport"] not in ['A', 'B', 'C', 'D', 'E', 'X']:
+        """ Starports have a restricted possibility of values """
+        return False
+
+    return True
+
+class Uwp:
+    def __init__(self, source: str | tuple | dict):
         """ Creates the world from a given UWP string """
 
-        if not check_is_uwp_string_valid(uwp_string):
-            raise ValueError
+        if isinstance(source, str):
+            if not check_is_uwp_string_valid(source):
+               raise ValueError
 
-        self.starport = Ehex(uwp_string[0])
-        self.size = Ehex(uwp_string[1])
-        self.atmosphere = Ehex(uwp_string[2])
-        self.hydrosphere = Ehex(uwp_string[3])
-        self.population = Ehex(uwp_string[4])
-        self.government = Ehex(uwp_string[5])
-        self.law_level = Ehex(uwp_string[6])
-        self.tech_level = Ehex(uwp_string[8])
+            self.starport = Ehex(source[0])
+            self.size = Ehex(source[1])
+            self.atmosphere = Ehex(source[2])
+            self.hydrosphere = Ehex(source[3])
+            self.population = Ehex(source[4])
+            self.government = Ehex(source[5])
+            self.law_level = Ehex(source[6])
+            self.tech_level = Ehex(source[8])
 
-    def __str__(self):
+        elif isinstance(source, tuple):
+            if not check_is_uwp_tuple_valid(source):
+                raise ValueError
+
+            self.starport = source[0]
+            self.size = source[1]
+            self.atmosphere = source[2]
+            self.hydrosphere = source[3]
+            self.population = source[4]
+            self.government = source[5]
+            self.law_level = source[6]
+            self.tech_level = source[7]
+
+        elif isinstance(source, dict):
+            if not check_is_uwp_dict_valid(source):
+                raise ValueError
+
+            self.starport = source["Starport"]
+            self.size = source["Size"]
+            self.atmosphere = source["Atmosphere"]
+            self.hydrosphere = source["Hydrosphere"]
+            self.population = source["Population"]
+            self.government = source["Government"]
+            self.law_level = source["Law Level"]
+            self.tech_level = source["Tech Level"]
+
+        else:
+            raise TypeError
+
+
+    def __str__(self) -> str:
         return str(self.starport) + \
                 str(self.size) + \
                 str(self.atmosphere) + \
