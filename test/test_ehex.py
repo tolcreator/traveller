@@ -139,6 +139,42 @@ def test_ehex_ge(first, second, expected):
 
 
 
+""" Also tests __radd__ """
+@pytest.mark.parametrize("first, second, expected",
+    [ (Ehex('3'), 4, nullcontext(7)),
+      (Ehex('A'), -4, nullcontext(6)),
+      (Ehex('F'), 16, nullcontext(31)),
+      (Ehex('3'), '4', pytest.raises(TypeError)),
+      (Ehex('3'), 4.0, pytest.raises(TypeError)),
+      (Ehex('3'), Ehex('4'), pytest.raises(TypeError)),
+      (3, Ehex('4'), nullcontext(7)),
+      ('3', Ehex('4'), pytest.raises(TypeError)),
+      (3.0, Ehex('4'), pytest.raises(TypeError))
+    ])
+def test_ehex_add(first, second, expected):
+    with expected as e:
+        assert first + second == e
+
+
+
+""" Also tests __rsub__ """
+@pytest.mark.parametrize("first, second, expected",
+    [ (Ehex('A'), 4, nullcontext(6)),      
+      (Ehex('A'), -4, nullcontext(14)),
+      (Ehex('F'), -16, nullcontext(31)),
+      (Ehex('A'), '4', pytest.raises(TypeError)),
+      (Ehex('A'), 4.0, pytest.raises(TypeError)),
+      (Ehex('A'), Ehex('4'), pytest.raises(TypeError)),
+      (4, Ehex('A'), nullcontext(-6)),
+      ('4', Ehex('A'), pytest.raises(TypeError)),
+      (4.0, Ehex('A'), pytest.raises(TypeError))
+    ])
+def test_ehex_add(first, second, expected):
+    with expected as e:
+        assert first - second == e
+
+
+
 @pytest.mark.parametrize("test_value, expected",
     [ ('0', nullcontext(0)), 
       ('9', nullcontext(9)), 

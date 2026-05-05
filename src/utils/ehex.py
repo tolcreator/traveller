@@ -131,6 +131,36 @@ class Ehex:
         else:
             raise TypeError
 
+    """ TODO: We could just as easily add and subtract where
+        * Both operands are ehexes
+        * An ehex and a string, if it is in the ehex table
+        We may implement this functionality at a future date """
+
+    def __add__(self, other: int) -> int:
+        """ Add an int to an Ehex. This returns an int """
+        if isinstance(other, int):
+            return int(self) + other
+        else:
+            raise TypeError("We can only add int to Ehex")
+
+    def __radd__(self, other: int) -> int:
+        """ Add an ehex to an int. This returns an int """
+        """ Order of operation doesn't matter here """
+        return self.__add__(other)
+
+    def __sub__(self, other: int) -> int:
+        """ Subtract an int from an Ehex. This returns an int """
+        if isinstance(other, int):
+            return int(self) - other
+        else:
+            raise TypeError("We can only subtract int from Ehex")
+
+    def __rsub__(self, other:int) -> int:
+        """ Ah order of operation does matter here """
+        if isinstance(other, int):
+            return other - int(self)
+        else:
+            raise TypeError("We can only subtract Ehex from int")
 
 
 def hex_to_int(hex_value: str) -> int:
