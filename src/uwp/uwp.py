@@ -77,12 +77,15 @@ def check_is_uwp_dict_valid(uwp_dict: dict) -> bool:
 
     for expected_field in expected_fields:
         if expected_field not in uwp_dict:
+            print(f"Expected {expected_field} in uwp dict but did not find it")
             return False
         if not isinstance(uwp_dict[expected_field], Ehex):
+            print(f"Expected {expected_field} to be an Ehex but it is not")
             return False
 
     if uwp_dict["Starport"] not in ['A', 'B', 'C', 'D', 'E', 'X']:
         """ Starports have a restricted possibility of values """
+        print(f"Expected starport to be valid but it is: {uwp_dict['Starport']}")
         return False
 
     return True

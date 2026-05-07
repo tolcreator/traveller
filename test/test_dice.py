@@ -1,8 +1,8 @@
 """ For testing src/utils/dice.py
 
 We test by rolling 2 of a selection of dice
-We overwrite dice.randint so that we get predictable results
-We then compare the results with the expected values
+We use pytest-mocker to patch randint, so that it returns a predictable 
+value.
 """
 
 import pytest
@@ -17,6 +17,11 @@ import src.utils.dice as dice
         (12, [2, 11], 13),
         (20, [14, 19], 33)
     ])
-def test_roll(sides: int, rolls: list[int], expected: int):
-    dice.randint = lambda x, y : rolls.pop(0)
-    assert dice.roll(2, sides) == expected
+def test_roll(mocker, sides: int, rolls: list[int], expected: int):
+    mock_randint = mocker.patch("src.utils.dice.randint")
+
+    mock_randint.side_effect = rolls
+
+    roll = dice.roll(2, sides)
+    assert mock_randint.call_count == 2
+    assert roll == expected
