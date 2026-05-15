@@ -21,7 +21,7 @@ def parse_sec(sec: list[str]) -> list[dict]:
     for line in sec:
         line = line.strip()
         if len(line) == 0:
-            print("Empty line")
+            pass
         elif line[0] == '#':
             """ This is a comment, we can ignore it... FOR NOW """
             """ This can contain information like sector name,
@@ -29,12 +29,10 @@ def parse_sec(sec: list[str]) -> list[dict]:
                 we DO want to parse these things. """
             line = line[1:]
             line = line.strip()
-            print(f"Comment: {line}")
         else:
             try:
                 systems.append(parse_system(line))
             except ValueError:
-                print("This is not a system")
                 pass
 
     return systems
