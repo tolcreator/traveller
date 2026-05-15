@@ -15,6 +15,7 @@ from src.utils.dice import roll
 from src.utils.ehex import Ehex
 from src.uwp.uwp import Uwp
 from src.uwp.uwp_generator import generate_uwp
+from src.uwp.trade_codes import get_trade_codes
 from src.uwp.ct_book_six import (
         generate_stellar_data,
         generate_planetoid_belts,
@@ -138,7 +139,6 @@ class System:
         self.allegiance = allegiance
 
     def parse_stellar(self, stellar: str):
-        """ TODO parse stellar data """
         self.stars = []
         chunks = stellar.split()
         while(chunks):
@@ -163,9 +163,8 @@ class System:
         
 
     def update_trade_codes(self):
-        """ TODO update trade codes """
         """ This should be called whenever uwp is set """
-        pass
+        self.trade_codes = get_trade_codes(self.uwp)
 
     def get_base_code(self) -> str:
         if self.naval_base and self.scout_base:
@@ -177,8 +176,10 @@ class System:
         return ' '
 
     def get_trade_codes_str(self) -> str:
-        """ TODO get trade codes str """
-        return ""
+        trade_codes_str = ""
+        for trade_code in self.trade_codes:
+            trade_codes_str += trade_code + " "
+        return trade_codes_str
 
     def get_zone_str(self) -> str:
         if self.zone:
@@ -206,11 +207,12 @@ class System:
 
     def __str__(self) -> str:
         """ Should return a valid line for a .sec file """
-        return  f"{self.name:<14}" \
+        """ Note that we truncate name and trade codes. """
+        return  f"{self.name[0:14]:<14}" \
                 f"{self.coordinates[0]:02d}{self.coordinates[1]:02d} " \
                 f"{self.uwp}  " \
                 f"{self.get_base_code()} " \
-                f"{self.get_trade_codes_str():<15} " \
+                f"{self.get_trade_codes_str()[0:15]:<15} " \
                 f"{self.get_zone_str():<2} " \
                 f"{self.get_pbg_str()} " \
                 f"{self.get_allegiance_str():<2} " \
