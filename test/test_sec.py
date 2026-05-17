@@ -9,14 +9,14 @@ import src.uwp.sec as sec
     [
         ("Zeycude       0101 C430698-9    De Na Ni Po        613 Zh K9 V",
             nullcontext({
-                "name": "Zeycude",
-                "hex": "0101",
-                "uwp": "C430698-9",
-                "bases": "",
-                "codes": "De Na Ni Po",
-                "pbg": "613",
-                "allegiance": "Zh",
-                "stellar": "K9 V"
+                "Name": "Zeycude",
+                "Hex": "0101",
+                "Uwp": "C430698-9",
+                "Bases": "",
+                "Codes": "De Na Ni Po",
+                "Pbg": "613",
+                "Allegiance": "Zh",
+                "Stellar": "K9 V"
             })),
         ("This is not a system", pytest.raises(ValueError)),
     ])
@@ -69,5 +69,5 @@ Frond         0810 E9C3300-9    Fl Lo              103 Cs F8 V
 """
 def test_parse_sec():
     lines = goodsec.splitlines()
-    parsed = sec.parse_sec(lines)
-    assert len(parsed) == 24
+    contents = sec.parse_sec(lines)
+    assert len(contents["Systems"]) == 24
