@@ -26,43 +26,52 @@ class System:
     def __init__(self, 
                  name: str, 
                  coordinates: tuple[int, int], 
-                 system_details: dict = None,
-                 space_details: dict = None):
+                 space_details: dict = None,
+                 contents: dict = None):
 
         """ We cannot generate a name, this MUST be provided """
         self.name = name
         """ We cannot generate coordinates, these MUST be provided """
         self.coordinates = coordinates
 
-        if system_details:
-            """ Fill out the system object with the details given """
-            self.uwp = Uwp(system_details["uwp"])
-            self.parse_bases(system_details["bases"])
-            self.parse_zone(system_details["zone"])
-            self.parse_pbg(system_details["pbg"])
-            self.parse_allegiance(system_details["allegiance"])
-            self.parse_stellar(system_details["stellar"])
+        if contents:
+            self.populate(contents)
         else:
-            """ Generate the system given the space details """
-            if not space_details:
-                self.uwp = generate_uwp()
-            else:
-                self.uwp = generate_uwp(
-                        space_opera = space_details["Space Opera"],
-                        hard_science = space_details["Hard Science"],
-                        maturity = space_details["Maturity"],
-                        tech_cap = space_details["Tech Cap"])
-            self.generate_bases()
-            self.generate_pbg()
-            self.generate_stellar()
-            """ Note that we cannot generate zone or allegiance either """
-            """ TODO work out how to set these """
-            self.zone = None
-            self.allegiance = None
+            self.generate(space_details)
 
         """ Trade codes are expensive to calculate so we need to have them
             on hand rather than calculating them every time we are asked. """
         self.update_trade_codes()
+
+    def populate(self, contents: dict):
+        """ Fill out the system object with the details given """
+        self.uwp = Uwp(contents["Uwp"])
+        self.parse_bases(contents["Bases"])
+        self.parse_zone(contents["Zone"])
+        self.parse_pbg(contents["Pbg"])
+        self.parse_allegiance(contents["Allegiance"])
+        self.parse_stellar(contents["Stellar"])
+
+    def generate(self, details: dict):
+        """ Generate the system given the space details """
+        if not details:
+            """ Will generate a defailt uwp """
+            self.uwp = generate_uwp()
+        else:
+            self.uwp = generate_uwp(
+                    space_opera = details["Space Opera"],
+                    hard_science = details["Hard Science"],
+                    maturity = details["Maturity"],
+                    tech_cap = details["Tech Cap"])
+        self.generate_bases()
+        self.generate_pbg()
+        self.generate_stellar()
+        """ Note that we cannot generate zone or allegiance either
+            These will have to be set after the fact by the user
+            either by editing the .sec file or some future GUI
+            functionality """
+        self.zone = None
+        self.allegiance = None
 
     def generate_bases(self):
         """ Using Classic Traveller rules """

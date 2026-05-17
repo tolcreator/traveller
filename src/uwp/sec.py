@@ -35,7 +35,13 @@ def parse_sec(sec: list[str]) -> list[dict]:
             except ValueError:
                 pass
 
-    return systems
+    """ Once we start parsing the details in the comments we can make this
+        more sophisticated. In particular, the name of the space, and 
+        possible subspaces i.e. subsectors, sectors """
+    contents = {
+        "Systems": systems
+            }
+    return contents
 
 
 
@@ -57,17 +63,17 @@ def parse_system(line: str) -> dict:
 
         """
     system = {}
-    system["name"] = line[:14].strip()
-    system["hex"] = line[14:18].strip()
-    system["uwp"] = line[19:28].strip()
-    system["bases"] = line[30:31].strip()
-    system["codes"] = line[32:47].strip()
-    system["zone"] = line[48:49].strip()
-    system["pbg"] = line[51:54].strip()
-    system["allegiance"] = line[55:57].strip()
-    system["stellar"] = line[58:].strip()
+    system["Name"] = line[:14].strip()
+    system["Hex"] = line[14:18].strip()
+    system["Uwp"] = line[19:28].strip()
+    system["Bases"] = line[30:31].strip()
+    system["Codes"] = line[32:47].strip()
+    system["Zone"] = line[48:49].strip()
+    system["Pbg"] = line[51:54].strip()
+    system["Allegiance"] = line[55:57].strip()
+    system["Stellar"] = line[58:].strip()
     """ Sanity check values. Does this look like a system? """
-    if system["hex"].isnumeric() and uwp_check(system["uwp"]):
+    if system["Hex"].isnumeric() and uwp_check(system["Uwp"]):
         return system
     else:
         raise ValueError
