@@ -8,6 +8,8 @@ import sys
 from src.utils.dice import roll
 from src.uwp.system import System
 
+
+
 density_dm = {
             "Rift": -2,     # 6+    16.67%
             "Sparse": -1,   # 5+    33.33%
@@ -22,36 +24,42 @@ def get_system_presence(density: str) -> bool:
 
 
 
-default_space_details = {
-        "Density": "Standard",
-        "Maturity": "Standard",
-        "Space_Opera": False,
-        "Hard_Science": False,
-        "Tech Cap": None
-        }
+default_details = {
+    "Name": "Space",
+    "Density": "Standard",
+    "Maturity": "Standard",
+    "Space_Opera": False,
+    "Hard_Science": False,
+    "Tech Cap": None
+    }
+
 
 class Space:
     """ A space is a 2D hexagonal grid that contains systems """
 
     def __init__(self, 
-                 name: str, 
                  size: tuple(int, int) = (8,10), 
                  origin: tuple(int, int) = (0,0),
-                 details: dict = default_space_details,
+                 details: dict = None,
                  contents: dict = None):
-        self.name = name
         self.size = size
         self.origin = origin
+        """ We do have to hang on to details because at a later point we
+            may add a new system to generate, and we will need the details
+            then. """
         self.details = details
-        if contents:
+        if details and not contents:
+            """ Generate new space contents based on provided details"""
+            self.generate()
+        elif contents:
             """ Populate the space with the given contents """
             self.populate(contents)
         else:
-            """ Generate new space contents """
-            self.generate()
+            raise ValueError("A space must have details or contents")
 
     def populate(self, contents: dict):
         """ Populates the space with the given contents """
+        self.name = contents["Name"]
         self.systems = []
         for system_contents in contents["Systems"]:
             name = system_contents["Name"]
@@ -63,6 +71,7 @@ class Space:
 
     def generate(self):
         """ Creates new systems with which to populate the space """
+        self.name = self.details["Name"]
         self.systems = []
         systems = 0
         for row in range(1, self.size[0]+1):
@@ -70,7 +79,7 @@ class Space:
                 if get_system_presence(self.details["Density"]):
                     systems += 1
                     s = System(
-                            name = f"{self.name} {systems}",
+                            name = f"{self.details['Name']} {systems}",
                             coordinates = (row + self.origin[0], 
                                            column + self.origin[1]),
                             space_details = self.details)
@@ -83,3 +92,169 @@ class Space:
             ret += system.__str__() + "\n"
         return ret
 
+
+class Subsector(Space):
+    """ A Subsector is 8x10 hexes """
+    size = (8, 10)
+
+    def __init__(self,
+                 origin: tuple(int, int) = (0,0),
+                 details: dict = default_details,
+                 contents: dict = None):
+        super().__init__(size = (8, 10), 
+                         origin = origin, 
+                         details = details, 
+                         contents = contents)
+
+    def __str__(self) -> str:
+        ret = f"# Subsector '{self.name}' at " \
+                f"'{self.origin[0]},{self.origin[1]}'\n"
+        ret += super().__str__()
+        return ret
+
+
+class ContainerOfSpaces(Space):
+    """ This is a space that contains other spaces.
+
+    In practice this will be one of two things:
+    1) A Sector that contains sixteen Subsectors
+    2) A Domain that contains four Sectors
+
+    Yes there is such a thing as a Quadrant of four Subsectors but we
+    shall leave that for a future version.
+
+    A ContainerOfSpaces will also be able to contain other
+    ContainerOfSpaces e.g. a domain contains sectors contains subsectors.
+
+    Some concepts.
+    Base: All ContainerOfSpaces will contain a square number of spaces,
+    i.e. 2x2, 4x4. Base is the number to be squared. So a ContainerOfSpaces
+    contains base*base subspaces.
+
+    Origin: The coordinate of the space within a larger space. This
+    gives context to the coordinates within the space, which can go from
+    origin+1 to size
+
+    Subspace Size is the size of the subspaces this space contains.
+    The overall size of the this space is:
+        (subspace_size[0] * base, subspace_size[1] * base)
+
+    details or contents:
+    Details tell us how to create the systems in the space.
+    contents tell us about the systems already there.
+
+    details: A ContainerOfSpaces may, or may not, have a "Subspace Details"
+    key. If present, it will give a list of the details of its subspaces.
+    If not, the subspace details will be derrived from the container space
+    details.
+    """
+
+    subspace_labels = [
+        'A', 'B', 'C', 'D',
+        'E', 'F', 'G', 'H',
+        'I', 'J', 'K', 'L',
+        'M', 'N', 'O', 'P'
+        ]
+    
+    def __init__(self,
+                 base: int,
+                 origin: tuple[int, int] = (0,0),
+                 subspace_size: tuple[int, int] = (8, 10),
+                 subspace_descriptor:str = "Subspace",
+                 details: dict = None,
+                 contents: dict = None):
+
+        self.base = base
+        self.num_subspaces = base ** 2
+        self.subspace_size = subspace_size
+        self.subspace_descriptor = subspace_descriptor
+
+        super().__init__(
+            size = (subspace_size[0] * base, subspace_size[1] * base), # Size
+            origin = origin,
+            details = details,
+            contents = contents
+            )
+
+    def get_subspace_descriptor(self) -> str:
+        return self.subspace_descriptor
+
+    def get_subspace_list(self) -> str:
+        return self.get_subspace_descriptor() + "s"
+
+    def get_subspace_index(self, row: int, column: int) -> int:
+        return (row * self.base) + column
+
+    def get_subspace_origin(self, row: int, column: int) -> tuple[int, int]:
+        return (self.origin[0] + (row * self.subspace_size[0]),
+                self.origin[1] + (column * self.subspace_size[1]))
+
+    def populate(self, contents: dict):
+        self.name = contents["Name"]
+        self.subspaces = []
+        for row in range(self.base):
+            for column in range(self.base):
+                i = self.get_subspace_index(row, column)
+                origin = self.get_subspace_origin(row, column)
+                subspace = self.populate_subspace(
+                        origin,
+                        contents[self.subspaces_list][i])
+                self.subspaces.append(subspace)
+
+    def populate_subspace(self, origin: tuple[int, int], contents: dict):
+        return Space(self.subspace_size, origin, contents = contents)
+
+    def generate(self):
+        self.name = self.details["Name"]
+        self.subspaces = []
+        for row in range(self.base):
+            for column in range(self.base):
+                i = self.get_subspace_index(row, column)
+                origin = self.get_subspace_origin(row, column)
+
+                if self.get_subspace_list() in self.details:
+                    details = self.details[self.subspaces_list][i]
+                else:
+                    details = dict(self.details)
+                    details["Name"] = \
+                        f"{self.name} {self.get_subspace_descriptor()} " \
+                        f"{self.subspace_labels[i]}"
+                subspace = self.generate_subspace(origin, details)
+                self.subspaces.append(subspace)
+
+    def generate_subspace(self, origin: tuple[int, int], details: dict):
+        return Space(self.subspace_size, origin, details = details)
+
+    def __str__(self):
+        ret = f"# Space: {self.name}\n"
+        for subspace in self.subspaces:
+            ret += subspace.__str__()
+        return ret
+
+
+class Sector(ContainerOfSpaces):
+    """ A sector contains 16 subsectors """
+
+    def __init__(self, 
+                 origin: tuple[int, int] = (0,0),
+                 details: dict = None,
+                 contents: dict = None):
+        super().__init__(
+            base = 4,              # 4x4 subsectors
+            origin = origin,
+            subspace_size = Subsector.size, # Subsector Size
+            subspace_descriptor = "Subsector",
+            details = details,
+            contents = contents
+            )
+
+    def populate_subspace(self, origin: tuple[int, int], contents: dict):
+        return Subsector(origin, contents = contents)
+
+    def generate_subspace(self, origin: tuple[int, int], details: dict):
+        return Subsector(origin, details = details)
+
+
+
+
+       

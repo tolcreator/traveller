@@ -217,7 +217,7 @@ class System:
     def __str__(self) -> str:
         """ Should return a valid line for a .sec file """
         """ Note that we truncate name and trade codes. """
-        return  f"{self.name[0:14]:<14}" \
+        return  f"{self.name[0:24]:<24}" \
                 f"{self.coordinates[0]:02d}{self.coordinates[1]:02d} " \
                 f"{self.uwp}  " \
                 f"{self.get_base_code()} " \
