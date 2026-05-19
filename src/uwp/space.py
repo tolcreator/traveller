@@ -87,7 +87,7 @@ class Space:
 
     def __str__(self):
         """ Prints out for .sec file """
-        ret = ""
+        ret = f"# Name: {self.name}\n"
         for system in self.systems:
             ret += system.__str__() + "\n"
         return ret

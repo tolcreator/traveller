@@ -221,7 +221,7 @@ class System:
                 f"{self.coordinates[0]:02d}{self.coordinates[1]:02d} " \
                 f"{self.uwp}  " \
                 f"{self.get_base_code()} " \
-                f"{self.get_trade_codes_str()[0:15]:<15} " \
+                f"{self.get_trade_codes_str()[0:20]:<20} " \
                 f"{self.get_zone_str():<2} " \
                 f"{self.get_pbg_str()} " \
                 f"{self.get_allegiance_str():<2} " \

@@ -12,7 +12,7 @@ import src.uwp.sec as sec
                 "Name": "Zeycude",
                 "Hex": "0101",
                 "Uwp": "C430698-9",
-                "Bases": "",
+                "Bases": " ",
                 "Codes": "De Na Ni Po",
                 "Pbg": "613",
                 "Allegiance": "Zh",
