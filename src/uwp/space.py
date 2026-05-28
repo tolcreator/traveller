@@ -63,9 +63,7 @@ class Space:
         self.systems = []
         for system_contents in contents["Systems"]:
             name = system_contents["Name"]
-            hex_number = system_contents["Hex"]
-            x = int(hex_number[0:2])
-            y = int(hex_number[2:4])
+            x,y = system_contents["Hex"]
             system = System(name, (x,y), contents = system_contents)
             self.systems.append(system)
 
@@ -107,8 +105,7 @@ class Subsector(Space):
                          contents = contents)
 
     def __str__(self) -> str:
-        ret = f"# Subsector '{self.name}' at " \
-                f"'{self.origin[0]},{self.origin[1]}'\n"
+        ret = f"{self.name}\n# Subsector\n"
         ret += super().__str__()
         return ret
 
@@ -198,7 +195,7 @@ class ContainerOfSpaces(Space):
                 origin = self.get_subspace_origin(row, column)
                 subspace = self.populate_subspace(
                         origin,
-                        contents[self.subspaces_list][i])
+                        contents[self.get_subspace_list()][i])
                 self.subspaces.append(subspace)
 
     def populate_subspace(self, origin: tuple[int, int], contents: dict):
@@ -213,7 +210,7 @@ class ContainerOfSpaces(Space):
                 origin = self.get_subspace_origin(row, column)
 
                 if self.get_subspace_list() in self.details:
-                    details = self.details[self.subspaces_list][i]
+                    details = self.details[self.get_subspace_list()][i]
                 else:
                     details = dict(self.details)
                     details["Name"] = \
@@ -253,6 +250,13 @@ class Sector(ContainerOfSpaces):
 
     def generate_subspace(self, origin: tuple[int, int], details: dict):
         return Subsector(origin, details = details)
+
+    def __str__(self):
+        ret = f"# Sector\n# Name: {self.name}\n"
+        for i, subspace in enumerate(self.subspaces):
+            ret += f"# Subsector {self.subspace_labels[i]}: "
+            ret += subspace.__str__()
+        return ret
 
 
 

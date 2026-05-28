@@ -10,7 +10,7 @@ import src.uwp.sec as sec
         ("Zeycude       0101 C430698-9    De Na Ni Po        613 Zh K9 V",
             nullcontext({
                 "Name": "Zeycude",
-                "Hex": "0101",
+                "Hex": (1,1),
                 "Uwp": "C430698-9",
                 "Bases": " ",
                 "Codes": "De Na Ni Po",
@@ -71,3 +71,85 @@ def test_parse_sec():
     lines = goodsec.splitlines()
     contents = sec.parse_sec(lines)
     assert len(contents["Systems"]) == 24
+
+
+
+@pytest.mark.parametrize("hexnumber, expected",
+    [
+        ("0101", (1,1)),
+        ("1020", (10,20)),
+        ("6480", (64, 80))
+    ])
+def test_get_coords_from_hexnumber(hexnumber, expected):   
+    assert sec.get_coords_from_hexnumber(hexnumber) == expected
+
+
+
+def test_parse_details():
+    # TODO
+    pass
+
+
+
+@pytest.mark.parametrize("comments, expected",
+    [
+        (["Random Stuff", 
+          "Name: Spinward Marches", 
+          "Whatever"], 
+         "Spinward Marches"),
+        (["Name: Deneb", "Name: Foreven"], "Deneb"),
+        (["Deneb", "Foreven"], "Unknown")
+    ])
+def test_parse_name(comments, expected):
+    assert sec.parse_name(comments) == expected
+   
+
+
+@pytest.mark.parametrize("comments, expected",
+    [
+        (["Random Stuff", "Subsector", "Whatever"], "Subsector"),
+        (["This is not", "Anything"], "Unknown")
+    ])
+def test_parse_space_type(comments, expected):
+    assert sec.parse_space_type(comments) == expected
+
+
+
+def test_parse_subsector():
+    # TODO
+    pass
+
+
+
+@pytest.mark.parametrize("coords, expected",
+    [
+        ((1, 1), 'A'),
+        ((9, 1), 'B'),
+        ((9, 23), 'J')
+    ])
+def test_get_subsector_letter(coords, expected):
+    assert sec.get_subsector_letter(coords) == expected
+
+
+
+@pytest.mark.parametrize("coords, expected",
+    [
+        ((1,1), ('A', 'A')),
+        ((9,1), ('A', 'B')),
+        ((33,1), ('B', 'A')),
+        ((1,41), ('C', 'A')),
+        ((9,41), ('C', 'B')),
+        ((42,53), ('D', 'F'))
+    ])
+def test_get_sector_and_subsector_letter(coords, expected):
+    assert sec.get_sector_and_subsector_letter(coords) == expected
+
+
+
+def test_parse_sector():
+    # TODO
+    pass
+
+def test_parse_domain():
+    # TODO
+    pass

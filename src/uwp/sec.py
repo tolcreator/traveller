@@ -7,7 +7,6 @@ from src.uwp.uwp import check_is_uwp_string_valid as uwp_check
 import re
 
 
-
 def parse_sec(sec: list[str]) -> list[dict]:
     """ This function parses the contents of a .sec file.
         The file would have been read with readlines and so we expect
@@ -38,23 +37,14 @@ def parse_sec(sec: list[str]) -> list[dict]:
             except ValueError:
                 pass
 
-    """ Once we start parsing the details in the comments we can make this
-        more sophisticated. In particular, the name of the space, and 
-        possible subspaces i.e. subsectors, sectors """
-    
-    """ Find the first instance of 'Name: ' in the comments.
-        This will be the name of the space. """
-    name = "Unknown"
-    for comment in comments:
-        if "Name: " in comment:
-            name = comment.replace("Name: ", "").strip()
-            break
+    return parse_details(comments, systems)
 
-    contents = {
-        "Name": name,
-        "Systems": systems
-            }
-    return contents
+
+
+def get_coords_from_hexnumber(hexnumber: str) -> tuple(int, int):
+    x = int(hexnumber[0:2])
+    y = int(hexnumber[2:4])
+    return (x,y)
 
 
 
@@ -101,7 +91,7 @@ def parse_system(line: str) -> dict:
     remainder = remainder.strip()  
 
     system["Name"] = name
-    system["Hex"] = cub[1:5]
+    system["Hex"] = get_coords_from_hexnumber(cub[1:5])
     system["Uwp"] = cub[6:15]
     system["Bases"] = cub[17]
 
@@ -124,6 +114,207 @@ def parse_system(line: str) -> dict:
     system["Allegiance"] = zpa[8:10]
     system["Stellar"] = stellar
     return system
+
+
+
+def parse_details(comments: list[str], systems: list[dict]) -> dict:
+    """ parse details should provide the 'content' dictionary that
+        a space can use to populate itself. """
+
+    space_type = parse_space_type(comments)
+
+    if space_type == "Subsector":
+        return parse_subsector(comments, systems)
+    elif space_type == "Sector":
+        return parse_sector(comments, systems)
+    elif space_type == "Domain":
+        return parse_domain(comments, systems)
+    else:
+        raise ValueError(f"(Unknown space type: '{space_type}'")
+
+
+
+def parse_name(comments: list[str]) -> str:
+    """ Find the first instance of 'Name: ' in the comments.
+        This will be the name of the space. """
+    name = "Unknown"
+    for comment in comments:
+        if "Name: " in comment:
+            name = comment.replace("Name: ", "").strip()
+            break
+    return name
+
+
+
+def parse_space_type(comments: list[str]) -> str:
+    """ Figure out what sort of space this is. Is it:
+        A subsector?
+        A sector?
+        A domain? """
+    
+    # check for sector
+    subsector_count = 0
+    for comment in comments:
+        if re.match("Subsector [A-P]: ", comment):
+            subsector_count += 1
+
+    if subsector_count == 16:
+        return "Sector"
+
+    # Check for domain
+    subsector_count = 0
+    for comment in comments:
+        if re.match("Sector [A-D] Subsector [A-P]: ", comment):
+            subsector_count += 1
+
+    if subsector_count == 64:
+        return "Domain"
+
+    # check for subsector
+    subsector_count = 0
+    for comment in comments:
+        if "Subsector" in comment:
+            subsector_count += 1
+
+    if subsector_count == 1:
+        return "Subsector"
+    else:
+        return "Unknown"
+
+
+
+def parse_subsector(comments: list[str], systems: list[dict]) -> str:
+    """ The simplest type of space to parse: one with no subspaces """
+    name = parse_name(comments)
+
+    contents = {
+        "Type": "Subsector",
+        "Name": name,
+        "Systems": systems
+    }
+    return contents
+
+
+
+subsectors_in_a_sector = [
+    ['A', 'B', 'C', 'D'],   # coords range from (01,01) to (32,10)
+    ['E', 'F', 'G', 'H'],   # coords range from (01,11) to (32,20)
+    ['I', 'J', 'K', 'L'],   # coords range from (01,21) to (32,30)
+    ['M', 'N', 'O', 'P']    # coords range from (01,31) to (32,40)
+    ]
+
+sectors_in_a_domain = [
+    ['A', 'B'],             # coords range from (01,01) to (64,40)
+    ['C', 'D']              # coords range from (01,41) to (64,80)
+    ]
+
+def get_subsector_letter(coords: tuple[int, int]) -> str:
+    """ Given the system coordinates, return the subsector letter
+        in a sector """
+    x = (coords[0] - 1) // 8
+    y = (coords[1] - 1) // 10
+    return subsectors_in_a_sector[y][x]
+
+def get_sector_and_subsector_letter(coords: tuple[int, int]) -> tuple[str, str]:
+    """ Given the system coordinates, return the sector and subsector letters
+        in a domain """
+    sec_x = (coords[0] - 1) // 32
+    sec_y = (coords[1] - 1) // 40
+    sub_x = ((coords[0] - 1) % 32) // 8
+    sub_y = ((coords[1] - 1) % 40) // 10
+    return (sectors_in_a_domain[sec_y][sec_x],
+            subsectors_in_a_sector[sub_y][sub_x])
+
+def parse_sector(comments: list[str], systems: list[dict]) -> dict:
+    name = parse_name(comments)
+
+    contents = {
+        "Type": "Sector",
+        "Name": name,
+        "Subsectors": []
+    }
+    """ Use subsector letter as a key """
+    subsectors = {}
+
+    for comment in comments:
+        if re.match("Subsector [A-P]: ", comment):
+            letter = comment[10]
+            name = comment[13:].strip()            
+            subsector = {
+                "Type": "Subsector",
+                "Name": name,
+                "Systems": []
+            }
+            subsectors[letter] = subsector
+
+    for system in systems:
+        letter = get_subsector_letter(system["Hex"])
+        subsectors[letter]["Systems"].append(system)
+
+    for subsector in subsectors.values():
+        contents["Subsectors"].append(subsector)
+    
+    return contents
+
+""" We need sectors denoted like:
+    # Sector A: Spinward Marches
+    And subsectors denoted like:
+    # Sector A Subsector N: District 268
+    """
+def parse_domain(comments: list[str], systems: list[dict]) -> dict:
+    name = parse_name(comments)
+
+    contents = {
+        "Type": "Domain",
+        "Name": name,
+        "Sectors": []
+    }
+
+    """ Use sector letter as a key """
+    sectors = {}
+    """ We can't just use the sector's subsector list yet, as we will
+        have to use the subsector letter to index them. """
+    subsector_systems = {}
+
+
+    """ Set up all sectors first, we should not assume they will
+        all preceed their subsectors (but in practice this will be true) """
+    for comment in comments:
+        if re.match("Sector [A-D]: ", comment):
+            sector_letter = comment[7]
+            name = comment[10:].strip()
+            sector = {
+                "Type": "Sector",
+                "Name": name,
+                "Subsectors": []
+            }
+            sectors[sector_letter] = sector
+            """ We'll be putting an entry per subsector in this sector here
+                And each will have a list of systems """
+            subsector_systems[sector_letter] = {}
+    
+    for comment in comments:
+        if re.match("Sector [A-D] Subsector [A-P]: ", comment):
+            sector_letter = comment[7]
+            subsector_letter = comment[19]
+            name = comment[22:].strip()
+            subsector = {
+                "Type": "Subsector",
+                "Name": name,
+                "Systems": []
+            }
+            """ Set up space for this subsectors systems """
+            subsector_systems[sector_letter][subsector_letter] = []
+
+    for system in systems:
+        sector_letter, subsector_letter = \
+                get_sector_and_subsector_letter(system)
+        subsector_systems[sector_letter][subsector_letter].append(system)
+
+
+
+    return contents
+
 
 
 
