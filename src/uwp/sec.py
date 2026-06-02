@@ -24,10 +24,6 @@ def parse_sec(sec: list[str]) -> list[dict]:
         if len(line) == 0:
             pass
         elif line[0] == '#':
-            """ This is a comment, we can ignore it... FOR NOW """
-            """ This can contain information like sector name,
-                subsector names, allegiance codes, etc. Eventually
-                we DO want to parse these things. """
             line = line[1:]
             line = line.strip()
             comments.append(line)
@@ -83,12 +79,12 @@ def parse_system(line: str) -> dict:
     cubs = re.findall(cub_search, line)
     if len(cubs) != 1:
         """ This might not be a valid system """
+        print(f"CUBS fail: '{line}'")
         raise ValueError
 
     cub = cubs[0]
     name, remainder = re.split(cub_search, line)
     name = name.strip()
-    remainder = remainder.strip()  
 
     system["Name"] = name
     system["Hex"] = get_coords_from_hexnumber(cub[1:5])
@@ -101,13 +97,15 @@ def parse_system(line: str) -> dict:
     zpa_search = " [ A-Z]  [0-9][0-9][0-9] [a-zA-Z][a-zA-Z] "
     zpas = re.findall(zpa_search, remainder)
     if len(zpas) != 1:
-        """ If we got here this is some sort of error. """
+        """ If we got here this is some sort of error.
+            So treat it as 'Not a system' """
+        print(f"ZPAS fail: {len(zpas)} '{line}'")
         raise ValueError
     zpa = zpas[0]
     codes, stellar = re.split(zpa_search, remainder)
     codes = codes.strip()
     stellar = stellar.strip()
-
+    
     system["Codes"] = codes
     system["Zone"] = zpa[1]
     system["Pbg"] = zpa[4:7]
@@ -152,7 +150,7 @@ def parse_space_type(comments: list[str]) -> str:
         A sector?
         A domain? """
     
-    # check for sector
+    # check for sector or domain
     subsector_count = 0
     for comment in comments:
         if re.match("Subsector [A-P]: ", comment):
@@ -160,12 +158,6 @@ def parse_space_type(comments: list[str]) -> str:
 
     if subsector_count == 16:
         return "Sector"
-
-    # Check for domain
-    subsector_count = 0
-    for comment in comments:
-        if re.match("Sector [A-D] Subsector [A-P]: ", comment):
-            subsector_count += 1
 
     if subsector_count == 64:
         return "Domain"
@@ -256,11 +248,22 @@ def parse_sector(comments: list[str], systems: list[dict]) -> dict:
     
     return contents
 
-""" We need sectors denoted like:
-    # Sector A: Spinward Marches
-    And subsectors denoted like:
-    # Sector A Subsector N: District 268
+
+""" Sectors wll be donated like:
+    Sector A: Spinward Marches
+    However, we cannot (as much was we might like) have Subsectors like:
+    Sector A Subsector C: Regina
+    Instead we will only have:
+    Subsector C: Regina
+    And we must infer which Sector we are in. There are two ways we can do this.
+    1) Assume that all subsectors of a sector are listed after the sector,
+    then the next sector and its subsectors will be listed. This is reasonable.
+    2) Assume that all subsectors are in order: The first subsector A we find
+    will be the subsector A of sector A, the second the subsector A of sector B,
+    etc. This is also reasonable, and easier than 1).
+    So that's what we'll do.
     """
+
 def parse_domain(comments: list[str], systems: list[dict]) -> dict:
     name = parse_name(comments)
 
@@ -272,13 +275,13 @@ def parse_domain(comments: list[str], systems: list[dict]) -> dict:
 
     """ Use sector letter as a key """
     sectors = {}
-    """ We can't just use the sector's subsector list yet, as we will
-        have to use the subsector letter to index them. """
-    subsector_systems = {}
+    """ We'll want to use this like:
+        subsectors[sector_letter][subsector_letter]
+        """
+    subsectors = {}
 
 
-    """ Set up all sectors first, we should not assume they will
-        all preceed their subsectors (but in practice this will be true) """
+    """ Set up all sectors first """
     for comment in comments:
         if re.match("Sector [A-D]: ", comment):
             sector_letter = comment[7]
@@ -289,29 +292,44 @@ def parse_domain(comments: list[str], systems: list[dict]) -> dict:
                 "Subsectors": []
             }
             sectors[sector_letter] = sector
-            """ We'll be putting an entry per subsector in this sector here
-                And each will have a list of systems """
-            subsector_systems[sector_letter] = {}
-    
+            subsectors_within_sector = {}
+            subsectors[sector_letter] = subsectors_within_sector
+
+    """ Set up subsectors.
+        We know that there are 64 subsectors (the definition of a domain)
+        We are going to assume that they are listed in order. That is,
+        the first Subsector A will be for Sector A, the second Sector B, etc
+        In fact we are going to make a further assumption: That the first 16
+        subsectors all belong to sector A, that the second 16 all belong to 
+        sector B, etc.
+        """
+    count = 0
+    sector_letters = ['A', 'B', 'C', 'D']
     for comment in comments:
-        if re.match("Sector [A-D] Subsector [A-P]: ", comment):
-            sector_letter = comment[7]
-            subsector_letter = comment[19]
-            name = comment[22:].strip()
+        if re.match("Subsector [A-P]: ", comment):
+            subsector_letter = comment[10]
+            name = comment[13:].strip()            
             subsector = {
                 "Type": "Subsector",
                 "Name": name,
                 "Systems": []
             }
-            """ Set up space for this subsectors systems """
-            subsector_systems[sector_letter][subsector_letter] = []
+            sector_letter = sector_letters[count // 16]
+            subsectors[sector_letter][subsector_letter] = subsector
+            count += 1
 
+    """ Assign systems to subsectors """
     for system in systems:
         sector_letter, subsector_letter = \
-                get_sector_and_subsector_letter(system)
-        subsector_systems[sector_letter][subsector_letter].append(system)
+                get_sector_and_subsector_letter(system["Hex"])
+        subsectors[sector_letter][subsector_letter]["Systems"].append(system)
 
 
+    """ Assign subsectors to sectors """
+    for sector_letter, sector in sectors.items():
+        for subsector_letter, subsector in subsectors[sector_letter].items():
+            sector["Subsectors"].append(subsector)
+        contents["Sectors"].append(sector)
 
     return contents
 

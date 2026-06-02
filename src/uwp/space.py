@@ -105,7 +105,7 @@ class Subsector(Space):
                          contents = contents)
 
     def __str__(self) -> str:
-        ret = f"{self.name}\n# Subsector\n"
+        ret = "# Subsector\n"
         ret += super().__str__()
         return ret
 
@@ -181,10 +181,11 @@ class ContainerOfSpaces(Space):
 
     def get_subspace_index(self, row: int, column: int) -> int:
         return (row * self.base) + column
-
+    
     def get_subspace_origin(self, row: int, column: int) -> tuple[int, int]:
-        return (self.origin[0] + (row * self.subspace_size[0]),
-                self.origin[1] + (column * self.subspace_size[1]))
+        """ Rememer that hex coordinates are column,row """
+        return (self.origin[0] + (column * self.subspace_size[0]),
+                self.origin[1] + (row * self.subspace_size[1]))
 
     def populate(self, contents: dict):
         self.name = contents["Name"]
@@ -229,8 +230,22 @@ class ContainerOfSpaces(Space):
         return ret
 
 
+    def __str__(self):
+        ret = f"# {self.__class__.__name__}\n# Name: {self.name}\n"
+        for i, subspace in enumerate(self.subspaces):
+            ret += f"# {self.subspace_descriptor} "
+            ret += f"{self.subspace_labels[i]}: "
+            ret += f"{subspace.name}\n"
+            ret += subspace.__str__()
+        return ret
+
+
+
 class Sector(ContainerOfSpaces):
     """ A sector contains 16 subsectors """
+
+    """ A Sector is 32x40 hexes """
+    size = (32, 40)
 
     def __init__(self, 
                  origin: tuple[int, int] = (0,0),
@@ -251,14 +266,57 @@ class Sector(ContainerOfSpaces):
     def generate_subspace(self, origin: tuple[int, int], details: dict):
         return Subsector(origin, details = details)
 
-    def __str__(self):
-        ret = f"# Sector\n# Name: {self.name}\n"
-        for i, subspace in enumerate(self.subspaces):
-            ret += f"# Subsector {self.subspace_labels[i]}: "
-            ret += subspace.__str__()
-        return ret
+
+    
+class Domain(ContainerOfSpaces):
+    """ A Domain contains 4 sectors """
+
+    def __init__(Self,
+                 details: dict = None,
+                 contents: dict = None):
+        super().__init__(
+            base = 2,           # 2x2 sectors
+            origin = (0,0),     # Domains is the top level of space
+            subspace_size = Sector.size,
+            subspace_descriptor = "Sector",
+            details = details,
+            contents = contents
+            )
+
+    def populate_subspace(self, origin: tuple[int, int], contents: dict):
+        return Sector(origin, contents = contents)
+
+    def generate_subspace(self, origin: tuple[int, int], details: dict):
+        return Sector(origin, details = details)
 
 
 
+def create_space_from_contents(contents: dict) -> Space:
+    """ Create a new space object given the space contents i.e.
+        already generated systems """
+    space_type = contents["Type"]
+    if space_type == "Subsector":
+        return Subsector(origin = (0, 0), contents = contents)
+    elif space_type == "Sector":
+        return Sector(origin = (0, 0), contents = contents)
+    elif space_type == "Domain":
+        return Domain(contents = contents)
+    else:
+        raise ValueError(f"Got space type: '{space_type}'."\
+                "I expect a Subsector, Sector, or Domain.")
 
-       
+
+
+def create_space_from_details(details: dict) -> Space:
+    """ Create a new space object given the space details i.e.
+        instructions on how to generate systems """
+    space_type = details["Type"]
+    if space_type == "Subsector":
+        return Subsector(origin = (0, 0), details = details)
+    elif space_type == "Sector":
+        return Sector(origin = (0, 0), details = details)
+    elif space_type == "Domain":
+        return Domain(details = details)
+    else:
+        raise ValueError(f"Got space type: '{space_type}'."\
+                "I expect a Subsector, Sector, or Domain.")
