@@ -207,18 +207,42 @@ class ContainerOfSpaces(Space):
         self.subspaces = []
         for row in range(self.base):
             for column in range(self.base):
-                i = self.get_subspace_index(row, column)
+                index = self.get_subspace_index(row, column)
                 origin = self.get_subspace_origin(row, column)
 
                 if self.get_subspace_list() in self.details:
-                    details = self.details[self.get_subspace_list()][i]
+                    details = self.details[self.get_subspace_list()][index]
                 else:
-                    details = dict(self.details)
-                    details["Name"] = \
-                        f"{self.name} {self.get_subspace_descriptor()} " \
-                        f"{self.subspace_labels[i]}"
+                    details = {}
+                """ We allow the user to omit fields so they need only
+                    fill those that are important """
+                self.autofill_subspace_details(details, index)
+
                 subspace = self.generate_subspace(origin, details)
                 self.subspaces.append(subspace)
+
+    def autofill_subspace_details(self, details: dict, index: int):
+        """ Automatically fills any omitted subspace details with details
+            from the parent space """
+        fields_to_copy = [
+            "Density",
+            "Maturity",
+            "Space Opera",
+            "Hard Science",
+            "Tech Cap"
+        ]
+
+        if not "Name" in details:
+            details["Name"] = \
+               f"{self.name} {self.get_subspace_descriptor()} " \
+               f"{self.subspace_labels[index]}"
+        if not "Type" in details:
+            details["Type"] = self.get_subspace_descriptor()
+
+        for field in fields_to_copy:
+            if field not in details:
+                details[field] = self.details[field]
+
 
     def generate_subspace(self, origin: tuple[int, int], details: dict):
         return Space(self.subspace_size, origin, details = details)
