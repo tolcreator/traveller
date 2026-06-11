@@ -5,7 +5,9 @@ Planned tasks
     space
     system
 
-2)  Input details from a json file to create a space
+2)  Add "Scattered" density (same as current rift).
+    Change rift to be even more sparse. This involves not just a dm
+    but adding a method to determine system presence to the density dict
 
 3)  Draw maps of a space
 
