@@ -344,3 +344,43 @@ def create_space_from_details(details: dict) -> Space:
     else:
         raise ValueError(f"Got space type: '{space_type}'."\
                 "I expect a Subsector, Sector, or Domain.")
+
+
+def create_space_from_json(buffer: str) -> Space:
+    details = json_to_details(buffer)
+    if details:
+        return create_space_from_details(details)
+    else:
+        raise ValueError("Got bad details from json")
+    
+
+
+def json_to_details(buffer: str) -> dict:
+    details = json.loads(buffer)
+    if check_details(details):
+        return details
+    else:
+        return None
+
+
+default_details = {
+    "Density": "Standard",
+    "Maturity": "Standard",
+    "Space Opera": False,
+    "Hard Science": False,
+    "Tech Cap": None
+}
+
+def check_details(details: dict) -> bool:
+    """ The only fields we absolutely need are name and type. """
+    if not "Name" in details:
+        return False
+    if not "Type" in details:
+        return False
+
+    """ We can leave fields blank if they are just the default """
+    for detail in default_details:
+        if not detail in details:
+            details[detail] = default_details[detail]
+
+    return True

@@ -1,0 +1,14 @@
+{
+    "Name": "Zodiac",
+    "Type": "Domain",
+    "Density": "Sparse",
+    "Space Opera": true,
+    "Hard Science": true,
+    "Tech Cap": 12,
+    "Sectors": [
+        {"Name": "Spring"},
+        {"Name": "Summer", "Density": "Rift"},
+        {"Name": "Autumn", "Density": "Rift"},
+        {"Name": "Winter", "Density": "Rift"}
+    ]
+}

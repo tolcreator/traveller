@@ -1,0 +1,29 @@
+{
+    "Name": "Knight",
+    "Type": "Sector",
+    "Density": "Sparse",
+    "Space Opera": true,
+    "Hard Science": true,
+    "Tech Cap": 12,
+    "Subsectors": [
+        {"Name": "Arthur"},
+        {"Name": "Bedivere"},
+        {"Name": "Caradoc"},
+        {"Name": "Dagonet"},
+
+        {"Name": "Ector"},
+        {"Name": "Feirefiz"},
+        {"Name": "Galahad"},
+        {"Name": "Hector"},
+
+        {"Name": "Isolde"},
+        {"Name": "Jaufre"},
+        {"Name": "Kay"},
+        {"Name": "Lancelot"},
+
+        {"Name": "Mordred"},
+        {"Name": "Naimon"},
+        {"Name": "Oliver"},
+        {"Name": "Pellinore"}
+    ]
+}

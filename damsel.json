@@ -1,0 +1,9 @@
+{
+    "Name": "Damsel",
+    "Type": "Subsector",
+    "Density": "Sparse",
+    "Maturity": "Standard",
+    "Space Opera": true,
+    "Hard Science": true,
+    "Tech Cap": 12
+}
