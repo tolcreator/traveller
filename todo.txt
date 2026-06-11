@@ -1,0 +1,12 @@
+Planned tasks
+
+1)  increase test coverage:
+    ct book six
+    space
+    system
+
+2)  Input details from a json file to create a space
+
+3)  Draw maps of a space
+
+4)  Add in economic data from "far trader"
