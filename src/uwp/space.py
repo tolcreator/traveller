@@ -9,16 +9,23 @@ from src.utils.dice import roll
 from src.uwp.system import System
 
 
+""" The tuple gives number of dice, number of sides,
+    and target number for system presence.
+    I've added 'Thin' as an intermediary between
+    scattered and rift. """
 
-density_dm = {
-            "Rift": -2,     # 6+    16.67%
-            "Sparse": -1,   # 5+    33.33%
-            "Standard": 0,  # 4+    50%
-            "Dense": +1     # 3+    66.67%
-        }
+space_densities = {
+    "Rift":      (2, 6, 12),# 2d6 12+    2.78%
+    "Thin":      (2, 6, 11),# 2d6 11+    8.33%
+    "Scattered": (1, 6, 6), # 1d6 6+    16.67%
+    "Sparse":    (1, 6, 5), # 1d6 5+    33.33%
+    "Standard":  (1, 6, 4), # 1d6 4+    50%
+    "Dense":     (1, 6, 3), # 1d6 3+    66.67%
+}
 
 def get_system_presence(density: str) -> bool:
-    if roll(1, 6) + density_dm[density] >= 4:
+    num, sides, tn = space_densities[density]
+    if roll(num, sides) >= tn:
         return True
     return False
 
